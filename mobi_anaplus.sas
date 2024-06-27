@@ -22,17 +22,17 @@ data events;
 		/*Extract Subject ID*/
 		if prxmatch("/MobiADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/MobiADC/i",filepath) + 7,4));
         else if prxmatch("/L3_ADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_ADC/i",filepath) + 6,4));
-/*        else if prxmatch("/GK_0{3}/i",filepath) then subject = strip(substr(filepath,prxmatch("/GK_0{3}/i",filepath) + 6,5));*/
         else if prxmatch("/GK/i",filepath) then subject = strip(substr(filepath,prxmatch("/GK_/i",filepath) + 4,6));
-		else if prxmatch("/Mobi/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi/i",filepath) + 4,7));
+        else if prxmatch("/Mobi0/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi0/i",filepath) + 5,6));
+        else if prxmatch("/Mobi/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi/i",filepath) + 4,7));
 		else if prxmatch("/L3_\d*/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_/i",filepath) + 4,6));
 		/*Extract Condition ID*/
     	if prxmatch("/MobiADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/MobiADC\d{10}_/i",filepath) + 18,3)));
-		else if prxmatch("/L3_ADC/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/L3_ADC\d{4}/i",filepath) + 11,3));
-/*		else if prxmatch("/GK_0{3}/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/GK_\d{8}_/i",filepath) + 12,3));*/
+		else if prxmatch("/L3_ADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_ADC\d{4}/i",filepath) + 11,3)));
         else if prxmatch("/GK/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/GK_\d{7}_/i",filepath) + 11,3)));
-		else if prxmatch("/Mobi/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3));
-		else if prxmatch("/L3_\d*/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/L3_\d{7}_/i",filepath) + 11,3));
+		else if prxmatch("/Mobi0/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
+        else if prxmatch("/Mobi/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
+		else if prxmatch("/L3_\d*/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_\d{7}_/i",filepath) + 11,3)));
         input uid: $char256. date: yymmdd10. time:time8. type: $char56. col_4: $char3. col_5: $char11. col_6: $char4. col_7: best8. col_8: $char9. 
  snr: $char11.;
         format date date9. time time8.;
@@ -55,17 +55,17 @@ data anaplus;
 		/*Extract Subject ID*/
 		if prxmatch("/MobiADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/MobiADC/i",filepath) + 7,4));
         else if prxmatch("/L3_ADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_ADC/i",filepath) + 6,4));
-/*        else if prxmatch("/GK_0{3}/i",filepath) then subject = strip(substr(filepath,prxmatch("/GK_0{3}/i",filepath) + 6,5));*/
         else if prxmatch("/GK/i",filepath) then subject = strip(substr(filepath,prxmatch("/GK_/i",filepath) + 4,6));
-		else if prxmatch("/Mobi/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi/i",filepath) + 4,7));
+        else if prxmatch("/Mobi0/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi0/i",filepath) + 5,6));
+        else if prxmatch("/Mobi/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi/i",filepath) + 4,7));
 		else if prxmatch("/L3_\d*/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_/i",filepath) + 4,6));
 		/*Extract Condition ID*/
     	if prxmatch("/MobiADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/MobiADC\d{10}_/i",filepath) + 18,3)));
-		else if prxmatch("/L3_ADC/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/L3_ADC\d{4}/i",filepath) + 11,3));
-/*		else if prxmatch("/GK_0{3}/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/GK_\d{8}_/i",filepath) + 12,3));*/
+		else if prxmatch("/L3_ADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_ADC\d{4}/i",filepath) + 11,3)));
         else if prxmatch("/GK/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/GK_\d{7}_/i",filepath) + 11,3)));
-		else if prxmatch("/Mobi/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3));
-		else if prxmatch("/L3_\d*/i",filepath) then condition_id = strip(substr(filepath,prxmatch("/L3_\d{7}_/i",filepath) + 11,3));
+		else if prxmatch("/Mobi0/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
+        else if prxmatch("/Mobi/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
+		else if prxmatch("/L3_\d*/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_\d{7}_/i",filepath) + 11,3)));
         input uid: $char16. date: yymmdd10. time: time8. type: $char56. ana: best8. st: best8. tr: best1. nonact: best1.;
         format date date9. time time8.;
 		drop uid st--nonact;
@@ -97,7 +97,7 @@ end;
 else do; 
 snr = _snr; 
 end;
-drop _snr date time filename;
+drop _snr date time;
 format snr_start datetime16.;
 run;
 

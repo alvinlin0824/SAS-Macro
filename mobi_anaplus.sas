@@ -1,7 +1,7 @@
 /*filename dir pipe "dir /b/s  ""M:\ADC-US-RES-23241\SE02\UploadData\*freestyle.csv""";*/
 /*filename dir pipe "dir /b/s  ""\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\014\AUU\*freestyle.csv""";*/
 /*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-21206\UploadData\AUU\AUU_DataFiles\*freestyle.csv""";*/
-/*filename dir pipe "dir /b/s  ""C:\Project\SAS-Macro\""";*/
+/*filename dir pipe "dir /b/s  ""C:\Project\SAS-Macro\UDP""";*/
 /*data events_list anaplus_list;*/
 /*	infile dir truncover;*/
 /*	input path $256.;*/
@@ -16,35 +16,36 @@
 /*Loop events.csv Data*/
 data events;
 	set &events_path;
-	infile dummy filevar = path length = reclen end = done missover dlm='2C'x dsd firstobs=4;
+	infile dummy filevar = path length = reclen end = done missover dlm='2C'x dsd firstobs=2;
 	do while(not done);
 	    filepath = path;
-		/*Extract Subject ID*/
-		if prxmatch("/MobiADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/MobiADC/i",filepath) + 7,4));
-        else if prxmatch("/L3_ADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_ADC/i",filepath) + 6,4));
-        else if prxmatch("/GK/i",filepath) then subject = strip(substr(filepath,prxmatch("/GK_/i",filepath) + 4,6));
-        else if prxmatch("/Mobi0/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi0/i",filepath) + 5,6));
-        else if prxmatch("/Mobi/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi/i",filepath) + 4,7));
-		else if prxmatch("/L3_\d*/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_/i",filepath) + 4,6));
-		/*Extract Condition ID*/
-    	if prxmatch("/MobiADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/MobiADC\d{10}_/i",filepath) + 18,3)));
-		else if prxmatch("/L3_ADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_ADC\d{4}/i",filepath) + 11,3)));
-        else if prxmatch("/GK/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/GK_\d{7}_/i",filepath) + 11,3)));
-		else if prxmatch("/Mobi0/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
-        else if prxmatch("/Mobi/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
-		else if prxmatch("/L3_\d*/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_\d{7}_/i",filepath) + 11,3)));
         input uid: $char256. date: yymmdd10. time:time8. type: $char56. col_4: $char3. col_5: $char11. col_6: $char4. col_7: best8. col_8: $char9. 
- snr: $char11.;
+ snr: $char25.;
         format date date9. time time8.;
-		drop uid col_4-col_8;
+		drop col_4-col_8;
         output;
 	end;
 run;
 
-/*Multiple Sensor Start*/
-data events_start;
-	set events (where = (type ="SENSOR_STARTED (58)"));
+
+/*Extract Subject and Condition ID*/
+data events_ID(keep = filepath subject condition_id);
+set events(where=(prxmatch("/(Subject)/i",uid)));
+if substr(uid,prxmatch("/(Site ID = )/i",uid) + 10,3) = "ADC" then subject = strip(substr(uid,prxmatch("/(Subject ID = )/i",uid) + 13,4));
+else if substr(uid,prxmatch("/(Site ID = )/i",uid) + 10,1) = "1" then subject = strip(catt(strip(substr(uid,prxmatch("/(Site ID = )/i",uid) + 10,3)),strip(substr(uid,prxmatch("/(Subject ID = )/i",uid) + 13,4))));
+else if substr(uid,prxmatch("/(Site ID = )/i",uid) + 10,2) = "00" then subject = strip(catt(strip(substr(uid,prxmatch("/(Site ID = 00)/i",uid) + 12,1)),strip(substr(uid,prxmatch("/(Subject ID = )/i",uid) + 13,4))));
+else if substr(uid,prxmatch("/(Site ID = )/i",uid) + 10,1) = "0" then subject = strip(catt(strip(substr(uid,prxmatch("/(Site ID = 0)/i",uid) + 11,2)),strip(substr(uid,prxmatch("/(Subject ID = )/i",uid) + 13,4))));
+else subject = substr(uid,prxmatch("/(Subject ID = )/i",uid) + 13,6);
+condition_id = upcase(strip(substr(uid,prxmatch("/Condition ID = /i",uid) + 15,3)));
 run;
+/*Multiple Sensor Start*/
+proc sql;
+create table events_start(drop = uid) as 
+select *
+from (select * from events where type = "SENSOR_STARTED (58)") as x 
+left join events_ID as y 
+on x.filepath = y.filepath;
+quit;
 
 /*Loop gluc.csv or glucplus.csv*/
 data anaplus;
@@ -52,20 +53,6 @@ data anaplus;
 	infile dummy filevar = path length = reclen end = done missover dlm='2C'x dsd firstobs=4;
 	do while(not done);
 	    filepath = path;
-		/*Extract Subject ID*/
-		if prxmatch("/MobiADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/MobiADC/i",filepath) + 7,4));
-        else if prxmatch("/L3_ADC/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_ADC/i",filepath) + 6,4));
-        else if prxmatch("/GK/i",filepath) then subject = strip(substr(filepath,prxmatch("/GK_/i",filepath) + 4,6));
-        else if prxmatch("/Mobi0/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi0/i",filepath) + 5,6));
-        else if prxmatch("/Mobi/i",filepath) then subject = strip(substr(filepath,prxmatch("/Mobi/i",filepath) + 4,7));
-		else if prxmatch("/L3_\d*/i",filepath) then subject = strip(substr(filepath,prxmatch("/L3_/i",filepath) + 4,6));
-		/*Extract Condition ID*/
-    	if prxmatch("/MobiADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/MobiADC\d{10}_/i",filepath) + 18,3)));
-		else if prxmatch("/L3_ADC/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_ADC\d{4}/i",filepath) + 11,3)));
-        else if prxmatch("/GK/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/GK_\d{7}_/i",filepath) + 11,3)));
-		else if prxmatch("/Mobi0/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
-        else if prxmatch("/Mobi/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/_{7}/",filepath) + 7,3)));
-		else if prxmatch("/L3_\d*/i",filepath) then condition_id = upcase(strip(substr(filepath,prxmatch("/L3_\d{7}_/i",filepath) + 11,3)));
         input uid: $char16. date: yymmdd10. time: time8. type: $char56. ana: best8. st: best8. tr: best1. nonact: best1.;
         format date date9. time time8.;
 		drop uid st--nonact;
@@ -82,27 +69,36 @@ run;
 
 /*Sort by dtm*/
 proc sort data = temp; 
-by descending filepath subject condition_id dtm;
+by descending filepath dtm;
 run;
 
-/*Fill the sensor serial number*/
-data &out;
+/*Fill the sensor serial number subject condition_id*/
+data temp1;
 set temp;
 /*Pseudo snr column*/
-retain _snr snr_start;
+retain _snr snr_start _subject _condition_id;
 if ^missing(snr) then do; 
 _snr = snr;
 snr_start = dtm; 
+_subject = subject;
+_condition_id = condition_id;
 end;
 else do; 
-snr = _snr; 
+snr = _snr;
+subject = _subject;
+condition_id = _condition_id;
 end;
-drop _snr date time;
+drop _snr date time _subject _condition_id;
 format snr_start datetime16.;
 run;
 
+data &out;
+retain filepath subject condition_id type snr ana dtm snr_start;
+set temp1;
+run;
+
 /*Delete temporary data*/
-proc delete data = work.events work.events_start work.anaplus work.temp;
+proc delete data = work.events work.events_start work.anaplus work.temp work.temp1 work.events_id;
 run;
 
 %mend;

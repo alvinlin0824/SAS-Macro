@@ -3,16 +3,16 @@
 /*/l: This is another switch used with the dir command to display file names in lowercase*/
 /*/s: This switch makes the dir command search for files not only in the specified directory but also in all subdirectories*/
 /* pipe: symbol |, which is used to take the output of one command and pass it as input to another command*/
-filename dir pipe "dir /b/s  ""C:\Project\SAS-Macro\BG""";
-/*filename dir pipe "dir /b/s  ""\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\017\UUU\017UUUFIN_RD_13JUN2024""";*/
+/*filename dir pipe "dir /b/s  ""C:\Project\SAS-Macro\BG""";*/
+filename dir pipe "dir /b/s  ""\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\019\AUU""";
 
-data freestyle_list sino_list;
+data freestyle_list;
 	infile dir truncover;
 	input path $256.;
 /*	Filter files*/
-	if ^prxmatch("/(Transfer|Transfers|Archives|Archive|UDP)/i",path) then do;
+	if ^prxmatch("/(Transfer|Transfers|Archives|Archive)/i",path) then do;
     if  prxmatch("/(freestyle.csv)/i",path) then output freestyle_list;
-	if  prxmatch("/(xls)/i",path) then output sino_list;
+/*	if  prxmatch("/(xls)/i",path) then output sino_list;*/
 	end;
 run;
 
@@ -40,11 +40,23 @@ run;
 /*MAUTOSOURCE is turned on, SAS searches the libraries specified in the SASAUTOS system option for macros when a macro name is encountered but not defined in the current session*/
 /*The SASAUTOS system option specifies the location of one or more autocall libraries.*/
 
-/*options mautolocdisplay mautosource sasautos = ("\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_Statistics\Statistics\Alvin\SAS Programs\");*/
-options mautolocdisplay mautosource sasautos = ("C:\Project\SAS-Macro\");
+
+/*filename dir pipe "dir /b/s  ""C:\Project\ADC-US-VAL-24252\Randox\*.xls""";*/
+filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24251\UploadData\Ketone\Ketone_DataFiles\RCR - 009\2023-07-30_1758\*.xls""";
+data randox_list;
+	infile dir truncover;
+	input path $256.;
+/*	Filter files*/
+	if ^prxmatch("/(Transfer|Transfers|Archives|Archive|UDP)/i",path);
+run;
+
+options mautolocdisplay mautosource sasautos = ("\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_Statistics\Statistics\Alvin\SAS Programs\");
+%import_randox(file_list = randox_list, out = aaaa);
+
+/*options mautolocdisplay mautosource sasautos = ("C:\Project\SAS-Macro\");*/
 
 /*%sinocare(file_list = sino_list, out = sino);*/
-%freestyle(free_path = freestyle_list, out = BG);
+/*%freestyle(free_path = freestyle_list, out = BG);*/
 /*%apol_fsl3(events_path = apol_events_list , gluc_path = apol_list, out = aaaabbb);*/
 /*%mobi_anaplus(events_path = ana_plus_events_list , anaplus_path = anaplus_list, out = iiiiii);*/
 

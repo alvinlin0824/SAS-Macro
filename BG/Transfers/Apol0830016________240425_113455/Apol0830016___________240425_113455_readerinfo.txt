@@ -1,0 +1,7 @@
+ReaderSN: MCGA285-J1517
+ReaderVersion: 1.3.2
+Key: 2000
+Study: 23241
+Subject: 0016______
+Condition: 
+Site: 083

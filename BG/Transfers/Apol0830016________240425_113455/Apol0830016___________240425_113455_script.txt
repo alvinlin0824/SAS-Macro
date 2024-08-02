@@ -1,0 +1,28 @@
+startLog Apol0830016___________240425_113455_script.log
+setLockstep 5000
+setInterlineDelay 500
+$dbrnum,1
+$delisf
+$rfcfg,60,20160
+$saconfig,14
+$pc,1
+$pc,0
+$pc,1
+$pc,0
+$delspatch
+$delcscan
+$delresult
+$delhistory
+$delevent
+$sim,30957
+$srec,0
+$arec,0
+$sim,0
+$event?
+$result?
+$history?
+$rdt,20,12,31,1,0,0
+$pc,1
+$pc,0
+stopLog
+quit

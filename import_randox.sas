@@ -1,5 +1,5 @@
 /*filename dir pipe "dir /b/s  ""C:\Project\ADC-US-VAL-24252\Randox\*.xls""";*/
-/*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24251\UploadData\Ketone\Ketone_DataFiles\RCR - 009\2023-07-30_1758\*.xls""";*/
+/*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24252\UploadData\Ketone\Ketone_DataFiles\058\2024-08-01\*.xls""";*/
 /*data randox_list;*/
 /*	infile dir truncover;*/
 /*	input path $256.;*/
@@ -28,26 +28,28 @@ quit;
 		sheet = "&sheet_name";
 		run;
     
-    	data randox;
+    	data temp1;
 		set temp;
 		filepath = "&individual";
+		if vtype("Date analyzed"n) = "C" then Date = input(strip("Date analyzed"n), MMDDYY10.);
+		else Date = "Date analyzed"n;
         run;
          
-        proc append base = out data = randox force;
+        proc append base = out data = temp1 force;
 		run;
 %end;
 
 proc sql;
-create table &out(drop = J K L "Date analyzedC"n) as 
+create table &out(drop = J K L "Date analyzed"n) as 
 select filepath, "Instrument ID"n as Instrument_ID , "Technician ID"n as Technician_ID,
-input(strip("Date analyzedC"n),MMDDYY10.) as Date  format date9.,
+Date format date9.,
 "Sample Volume"n as Sample_Volume, "Round #"n as Round_Number,
 "Sample ID"n as Sample_ID, SID, "Ranbut (mmoll/l"n as Result,
 Notes
-from out(rename = ("Date analyzed"n = "Date analyzedC"n));
+from out;
 quit;
 
-proc delete data = work.temp;
+proc delete data = work.temp work.temp1 work.out;
 run;
 
 %mend;

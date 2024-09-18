@@ -42,12 +42,12 @@ run;
 
 
 /*filename dir pipe "dir /b/s  ""C:\Project\ADC-US-VAL-24252\Randox\*.xls""";*/
-filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24251\UploadData\Ketone\Ketone_DataFiles\RCR - 009\2023-07-30_1758\*.xls""";
+filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24251\UploadData\Ketone\Ketone_DataFiles\*.xlsx""";
 data randox_list;
 	infile dir truncover;
 	input path $256.;
 /*	Filter files*/
-	if ^prxmatch("/(Transfer|Transfers|Archives|Archive|UDP)/i",path);
+	if ^prxmatch("/(Transfer|Transfers|Archives|Archive|receiptlog)/i",path);
 run;
 
 options mautolocdisplay mautosource sasautos = ("\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_Statistics\Statistics\Alvin\SAS Programs\");

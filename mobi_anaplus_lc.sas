@@ -1,18 +1,23 @@
 /*filename dir pipe "dir /b/s  ""M:\ADC-US-RES-23241\SE02\UploadData\*freestyle.csv""";*/
 /*filename dir pipe "dir /b/s  ""\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\014\AUU\*freestyle.csv""";*/
 /*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-21206\UploadData\AUU\AUU_DataFiles\*freestyle.csv""";*/
-/*filename dir pipe "dir /b/s  ""C:\UDP\OutputFiles\Output_2025-04-01-09-50\outputs""";*/
-/*data events_list anaplus_list;*/
+/*filename dir pipe "dir /b/s  ""D:\CUT""";*/
+/*data ket_anaplus_events_list_lc ket_anaplus_list_lc*/
+/*     gluc_anaplus_events_list_lc gluc_anaplus_list_lc;*/
 /*	infile dir truncover;*/
 /*	input path $256.;*/
 /*/*	Filter files*/*/
-/*	if ^prxmatch("/(Transfer|Transfers|Archives|Archive|Apol|LifeCountTimeStamp)/i",path) then do;*/
-/*	if  prxmatch("/(events.csv)/i",path) then output events_list;*/
-/*    if  prxmatch("/(anaPlus.csv)/i",path) then output anaplus_list;*/
+/*	if ^prxmatch("/(Transfer|Transfers|Archives|Archive)/i",path) and prxmatch("/(-244)/i",path) then do;*/
+/*/*	ketone*/*/
+/*		if  prxmatch("/(CrossChan.*?events\.csv)/i",path) and  prxmatch("/(keto)/i",path) then output ket_anaplus_events_list_lc;*/
+/*    	if  prxmatch("/(CrossChan_LCTime_anaPlus.csv)/i",path) and prxmatch("/(keto)/i",path) then output ket_anaplus_list_lc;*/
+/*/*	glucose*/*/
+/*		if  prxmatch("/(CrossChan.*?events\.csv)/i",path) and  prxmatch("/(gluc)/i",path) then output gluc_anaplus_events_list_lc;*/
+/*    	if  prxmatch("/(CrossChan_LCTime_anaPlus.csv)/i",path) and prxmatch("/(gluc)/i",path) then output gluc_anaplus_list_lc;*/
 /*	end;*/
 /*run;
 
-%macro mobi_anaplus(events_path = , anaplus_path = , out = );
+%macro mobi_anaplus_lc(events_path = , anaplus_path = , out = );
 /*Loop events.csv Data*/
 data events;
 	set &events_path;
@@ -21,6 +26,7 @@ data events;
 	    filepath = path;
         input uid: $char256. date: yymmdd10. time:time8. type: $char56. col_4: $char3. col_5: $char11. col_6: $char4. col_7: best8. col_8: $char9. 
  snr: $char25.;
+ 		group_number = _N_;
         format date date9. time time8.;
 		drop col_4-col_8;
         output;
@@ -48,13 +54,14 @@ on x.filepath = y.filepath;
 quit;
 
 /*Loop gluc.csv or glucplus.csv*/
-data anaplus;
+data anaplus(drop =  uid);
 	set &anaplus_path;
 	infile dummy filevar = path length = reclen end = done missover dlm='2C'x dsd firstobs=4;
 	do while(not done);
 	    filepath = path;
-        input uid: $char16. date: yymmdd10. time: time8. type: $char56. ana: best8. rate: best8. tr: best1. nonact: best1.;
-        format date date9. time time8.;
+        input uid: $char256. date: yymmdd10. time: time8. datelc: yymmdd10. timelc: time8. type: $char56. ana: best8. rate: best8. tr: best1. nonact: best1.;
+        format date datelc date9. time timelc time8.;
+		group_number = _N_;
 		drop uid;
         output;
 	end;
@@ -63,13 +70,15 @@ run;
 /*stack*/
 data temp;
 set events_start anaplus;
-format dtm datetime16.;
+format dtm dtm_lc datetime16.;
 dtm = dhms(date,0,0,time);
+if missing(dhms(datelc,0,0,timelc)) then dtm_lc = dhms(date,0,0,time);
+else dtm_lc = dhms(datelc,0,0,timelc);
 run;
 
 /*Sort by dtm*/
 proc sort data = temp; 
-by descending filepath dtm;
+by group_number dtm_lc;
 run;
 
 /*Fill the sensor serial number subject condition_id*/
@@ -88,14 +97,21 @@ snr = _snr;
 subject = _subject;
 condition_id = _condition_id;
 end;
-drop _snr date time _subject _condition_id;
+drop _snr date time _subject _condition_id datelc timelc;
 format snr_start datetime16.;
 run;
 
-data &out;
-retain filepath subject condition_id type snr ana dtm snr_start;
-set temp1;
-run;
+proc sql;
+create table &out as 
+select filepath, subject, condition_id ,type ,snr ,ana , dtm ,dtm_lc ,snr_start
+from temp1
+order by subject, condition_id, dtm_lc;
+quit;
+
+/*data &out;*/
+/*retain filepath subject condition_id type snr ana dtm dtm_lc snr_start;*/
+/*set temp1;*/
+/*run;*/
 
 /*Delete temporary data*/
 proc delete data = work.events work.events_start work.anaplus work.temp work.temp1 work.events_id;
@@ -103,4 +119,6 @@ run;
 
 %mend;
 
-/*%mobi_anaplus(events_path = events_list , anaplus_path = anaplus_list, out = aaaa);*/
+/*%mobi_anaplus_lc(events_path = ket_anaplus_events_list_lc , */
+/*                 anaplus_path = ket_anaplus_list_lc, out = aaaa);*/
+

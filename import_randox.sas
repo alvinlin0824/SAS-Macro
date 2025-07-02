@@ -1,5 +1,5 @@
 /*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24251\UploadData\Ketone\Ketone_DataFiles\*.xlsx""";*/
-/*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24252\UploadData\Ketone\Ketone_DataFiles\058\2024-08-01\*.xls""";*/
+/*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-24252\UploadData\Ketone\Ketone_DataFiles\133\2025-01-27\*.xlsx""";*/
 /*filename dir pipe "dir /b/s  ""M:\ADC-US-VAL-23244\UploadData\Ketone\Ketone_DataFiles\*.xlsx""";*/
 /*filename dir pipe "dir /b/s  ""C:\Project\SAS-Macro\*.xlsx""";*/
 /*data randox_list;*/
@@ -28,7 +28,7 @@ quit;
 
 		 data _null_;
             set sheet_names;
-            if _n_ = 2 then call symputx('sheet_name', compress(memname));
+            if _n_ = 1 then call symputx('sheet_name', compress(memname));
         run;
        
         proc import
@@ -43,17 +43,18 @@ quit;
 		libname myexcel clear;
 
 		data temp1;
-		length Notes $50. filepath $256.;
+		length Notes $256. filepath $256.;
 		set temp(rename = (A = Instrument_ID B = Technician_ID C = Date 
                    		   D = Sample_Volume E = Round_Number F = Sample_ID
-                   		   G = SIDN H = Result1 I = Notes1));
+                   		   G = SIDN H = Result1 ));
 /*		set temp(rename = (Notes = Notes1 SID = SIDN));*/
 		filepath = "&individual";
 /*		if vtype(Date1) = "C" then Date = input(strip(Date1), MMDDYY10.);*/
-/*		else Date = input(put(Date1,ddmmyy10.),MMDDYY10.);*/
-		if vtype(Result1) = "C" and prxmatch("/[0-9]/",Result1) then Result = input(Result1,best32.);
+/*		else Date = input(put(Date1,ddmmyy10.),MMDDYY10.) vtype(Result1) = "C" and ;*/
+		if prxmatch("/^</",Result1) then Result = input(substr(compress(Result1), 2), best32.);
+        else if prxmatch("/[0-9]/",Result1) then Result = input(Result1,best32.);
 		else Result = .;
-		Notes = Notes1;
+/*		Notes = Notes1;*/
         if vtype(SIDN) = "N" then SID = strip(put(SIDN,8.));
 		else SID = strip(SIDN);
 		if _N_ = 1 then delete;
@@ -87,14 +88,16 @@ create table &out as
 select filepath, 
 	    substr(filepath,prxmatch("/(?<=(VAL|RES)-)[0-9]{5}/i",filepath),5) as SE, 
 		create_siteID(filepath) as Site,
-		Instrument_ID , 
+		Instrument_ID, 
 		Technician_ID,
-		compress(Sample_Volume) as Sample_Volume, 
+		case 
+            when compress(Sample_Volume) in ("4ul","4UL","4uL") then "4uL"
+			when compress(Sample_Volume) in ("8ul","8UL","8uL") then "8uL"
+            end as Sample_Volume, 
 	    Round_Number,
 		Sample_ID, 
 	    SID, 
-	    Result,
-		Notes
+	    Result
 from out;
 quit;
 
@@ -108,6 +111,8 @@ run;
 %mend;
 
 /*%import_randox(file_list = randox_list, out = aaaa);*/
+
+
 
 
 
